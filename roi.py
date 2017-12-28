@@ -28,7 +28,7 @@ def mask(points, shape=[720, 360], dtype=np.uint8, frame=None):
     array of vertices should be like this
     np.array([[[10, 10], [40, 45], [10, 40]]], dtype=np.int32)
     ALSO!!!
-    x and y are from tope left corner
+    x and y are from top left corner
     """
     if frame is None:
         mask = np.zeros(shape=shape, dtype=dtype)
