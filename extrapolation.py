@@ -2,35 +2,31 @@ import numpy as np
 import cv2 as cv
 
 
+def getSlope(line):
+        p1p2 = np.array([line[0][2], line[0][3]]) - np.array(
+                [line[0][0], line[0][1]])  # p2 - p1
+
+        if p1p2[0] == 0:
+            return 9999999
+        else:
+            return p1p2[1]/p1p2[0]
+
+
 def separateLines(lines):
-    left_lines = []
-    left_dist = []
-    right_lines = []
-    right_dist = []
-    left_lane = None
-    right_lane = None
+    """
+    Implementation of separating lines by its slope
+    left line has negative slope
+    right line has positive slope
+    """
+    left_line = []
+    right_line = []
     if lines is not None:
         for line in lines:
-            for x1, y1, x2, y2 in line:
-                if x2 == x1:
-                    continue
-                else:
-                    slope = (y2-y1)/(x2-x1)
-                    intercept = y1 - slope*x1
-                    length = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-                    if slope < 0:
-                        left_lines.append((slope, intercept))
-                        left_dist.append(length)
-                    else:
-                        right_lines.append((slope, intercept))
-                        right_dist.append(length)
-    
-        # computing mean
-        left_lane = np.dot(left_dist, left_lines) / np.sum(
-                left_dist) if len(left_dist) > 0 else None
-        right_lane = np.dot(right_dist, right_lines) / np.sum(
-                right_dist) if len(right_dist) > 0 else None
-    return left_lane, right_lane
+            if getSlope(line) < 0:
+                left_line.append(line)
+            else:
+                right_line.append(line)
+    return left_line, right_line
 
 
 def make_line_points(y1, y2, line):
@@ -53,13 +49,13 @@ def make_line_points(y1, y2, line):
 
 def lane_lines(image, lines):
     left_lane, right_lane = separateLines(lines)
-    
-    y1 = image.shape[0] # bottom of the image
+
+    y1 = image.shape[0]  # bottom of the image
     y2 = y1*0.6         # slightly lower than the middle
 
-    left_line  = make_line_points(y1, y2, left_lane)
+    left_line = make_line_points(y1, y2, left_lane)
     right_line = make_line_points(y1, y2, right_lane)
-    
+
     return left_line, right_line
 
 
