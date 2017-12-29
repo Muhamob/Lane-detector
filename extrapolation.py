@@ -3,13 +3,26 @@ import cv2 as cv
 
 
 def getSlope(line):
-        p1p2 = np.array([line[0][2], line[0][3]]) - np.array(
-                [line[0][0], line[0][1]])  # p2 - p1
+    """
+    Returns tan = delta y div delta x
+    NOTE y goes down and x goes right from
+    top left corner
+    """
+    p1p2 = np.array([line[0][2], line[0][3]]) - np.array(
+            [line[0][0], line[0][1]])  # p2 - p1
+    if p1p2[0] == 0:
+        return 9999999
+    else:
+        return p1p2[1]/p1p2[0]
 
-        if p1p2[0] == 0:
-            return 9999999
-        else:
-            return p1p2[1]/p1p2[0]
+
+def getLength(line):
+    """
+    Returns euclidean norm of line
+    line is a sequence of start point and end point
+    e.g. [[0, 0, 1, 1]] = [[x1, y1, x2, y2]]
+    """
+    return np.sqrt((line[0][0]-line[0][2])**2 + (line[0][1] - line[0][3])**2)
 
 
 def separateLines(lines):
@@ -26,40 +39,47 @@ def separateLines(lines):
                 left_line.append(line)
             else:
                 right_line.append(line)
+
     return left_line, right_line
 
 
-def make_line_points(y1, y2, line):
+def averageLines(lines):
     """
-    Convert a line represented in slope and intercept into pixel points
+    Returns mean of slopes and max of lengths
+    for given lines
     """
-    if line is None:
+    meanSlope = 0
+    maxLength = 0
+    if lines is not None and len(lines) != 0:
+        slopes = np.array([getSlope(line) for line in lines])
+        lengths = np.array([getLength(line) for line in lines])
+        meanSlope = slopes.mean()
+        maxLength = lengths.max()
+    return meanSlope, maxLength
+
+
+def lstsqLine(lines):
+    """
+    Fit line between given points (x1, y1) and (x2, y2)
+    that are combined together
+    return: - line from min(x) to max(x), where
+            x is an array of abscissa
+            - None if lines is None
+    """
+    if lines is not None and len(lines) != 0:
+        x = [line[0][0] for line in lines] + [line[0][2] for line in lines]
+        y = [line[0][1] for line in lines] + [line[0][3] for line in lines]
+        A = np.vstack([x, np.ones(len(x))]).T
+        a, c = np.linalg.lstsq(A, y)[0]
+        return [[[min(x), int(c + a*min(x)), max(x), int(c + a*max(x))]]]
+    else:
         return None
-    print(line)
-    slope, intercept = line
-
-    # make sure everything is integer as cv2.line requires it
-    x1 = int((y1 - intercept)/slope)
-    x2 = int((y2 - intercept)/slope)
-    y1 = int(y1)
-    y2 = int(y2)
-
-    return ((x1, y1), (x2, y2))
-
-
-def lane_lines(image, lines):
-    left_lane, right_lane = separateLines(lines)
-
-    y1 = image.shape[0]  # bottom of the image
-    y2 = y1*0.6         # slightly lower than the middle
-
-    left_line = make_line_points(y1, y2, left_lane)
-    right_line = make_line_points(y1, y2, right_lane)
-
-    return left_line, right_line
 
 
 def draw_lane_lines(image, lines, color=[255, 0, 0], thickness=20):
+    """
+    not my implementation, will be removed soon
+    """
     # make a separate image to draw lines and combine with the orignal later
     line_image = np.zeros_like(image)
     for line in lines:
