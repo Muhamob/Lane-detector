@@ -33,13 +33,16 @@ def separateLines(lines):
     """
     left_line = []
     right_line = []
-    if lines is not None:
+    if lines is not None and len(lines) != 0:
         for line in lines:
             if getSlope(line) < 0:
                 left_line.append(line)
             else:
                 right_line.append(line)
-
+        print('checked separateLines')
+    else:
+        print('nf separate')
+    print(len(left_line), len(right_line))
     return left_line, right_line
 
 
@@ -58,7 +61,7 @@ def averageLines(lines):
     return meanSlope, maxLength
 
 
-def lstsqLine(lines):
+def lstsqLine(lines, bottomLevel=244, topLevel=190):
     """
     Fit line between given points (x1, y1) and (x2, y2)
     that are combined together
@@ -67,11 +70,18 @@ def lstsqLine(lines):
             - None if lines is None
     """
     if lines is not None and len(lines) != 0:
-        x = [line[0][0] for line in lines] + [line[0][2] for line in lines]
-        y = [line[0][1] for line in lines] + [line[0][3] for line in lines]
+        x = np.array([line[0][0] for line in lines] +
+                      [line[0][2] for line in lines])
+        y = np.array([line[0][1] for line in lines] +
+                      [line[0][3] for line in lines])
+
         A = np.vstack([x, np.ones(len(x))]).T
         a, c = np.linalg.lstsq(A, y)[0]
-        return [[[min(x), int(c + a*min(x)), max(x), int(c + a*max(x))]]]
+        Ax = np.vstack([y, np.ones(len(y))]).T
+        b, d = np.linalg.lstsq(Ax, x)[0]  # x = b + d*y
+        x0 = int((bottomLevel - c)/a) if a != 0 else int(b + d*bottomLevel)
+        x1 = int((topLevel - c)/a) if a != 0 else int(b + d*topLevel)
+        return [[[x0, int(c+a*x0), x1, int(c+a*x1)]]]
     else:
         return None
 
