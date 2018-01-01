@@ -3,14 +3,14 @@ import numpy as np
 import roi
 import drawing as draw
 import extrapolation as ex
-from skvideo.io import FFmpegWriter
+# from skvideo.io import FFmpegWriter
 
-output = 'video/out1.mp4'
+# output = 'video/out1.mp4'
 filename = 'video/highway1.mp4'
 cap = cv.VideoCapture(filename)
 
-writer = FFmpegWriter(output, outputdict={'-r': 24})
-writer = FFmpegWriter(output)
+# writer = FFmpegWriter(output, outputdict={'-r': 24})
+# writer = FFmpegWriter(output)
 
 while True:
     _, frame = cap.read()
@@ -38,15 +38,15 @@ while True:
     frame = draw.fillLane(leftLine, rightLine, frame)
     cv.imshow('highway in Moscow', frame)
     print('*'*20)
-    try:
-        writer.writeFrame(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
-    except:
-        writer.close()
-        break
+#    try:
+#        writer.writeFrame(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
+#    except:
+#        writer.close()
+#        break
     k = cv.waitKey(30) & 0xff
     if k == 27:
         break
 
-writer.close()
+# writer.close()
 cap.release()
 cv.destroyAllWindows()
